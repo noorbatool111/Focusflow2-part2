@@ -5,7 +5,7 @@ pipeline {
 
         stage('Clone Code') {
             steps {
-                git 'https://github.com/noorbatool111/FocusFlow2-second.git'
+                git 'https://github.com/noorbatool111/Focusflow2-part2.git'
             }
         }
 
