@@ -3,9 +3,15 @@ pipeline {
 
     stages {
 
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
         stage('Clone Code') {
             steps {
-                git 'https://github.com/noorbatool111/Focusflow2-part2.git'
+                git branch: 'main', url: 'https://github.com/noorbatool111/Focusflow2-part2.git'
             }
         }
 
