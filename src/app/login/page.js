@@ -29,7 +29,7 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || 'Login failed.');
+        alert(data.message || 'Login failed.');
         return;
       }
 

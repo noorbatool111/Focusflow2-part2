@@ -72,12 +72,14 @@ export default function NotesPage() {
 
         <div className="flex flex-col gap-4 mb-8">
           <textarea
+            id="note-textarea"
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="Write your note here..."
             className="w-full p-3 border-2 border-dashed border-pink-400 rounded-xl bg-pink-100 text-base resize-y h-32"
           />
           <button
+            id="add-note-btn"
             onClick={addNote}
             className="self-start bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-lg"
           >

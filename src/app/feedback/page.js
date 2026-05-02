@@ -56,23 +56,23 @@ export default function FeedbackPage() {
         <h3 className="text-3xl font-bold mb-6">We Value Your Feedback!</h3>
 
         {showSuccess && (
-          <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center animate-slide-down">🌟 Thank you for your feedback!</div>
+          <div id="feedback-success" className="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center animate-slide-down">🌟 Thank you for your feedback!</div>
         )}
 
         <div className="bg-white p-6 rounded-xl shadow-md mb-8">
           <h3 className="text-xl font-semibold mb-4">📝 Submit Your Feedback</h3>
           <label className="block font-medium mb-1">Your Name:</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-4 py-2 mb-4" placeholder="Enter your name" />
+          <input id="feedback-name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-4 py-2 mb-4" placeholder="Enter your name" />
 
           <label className="block font-medium mb-1">Your Rating:</label>
-          <select value={rating} onChange={(e) => setRating(e.target.value)} className="w-full border rounded px-4 py-2 mb-4">
+          <select id="feedback-rating" value={rating} onChange={(e) => setRating(e.target.value)} className="w-full border rounded px-4 py-2 mb-4">
             <option>⭐</option><option>⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐⭐⭐</option>
           </select>
 
           <label className="block font-medium mb-1">Your Review:</label>
-          <textarea value={review} onChange={(e) => setReview(e.target.value)} className="w-full border rounded px-4 py-2 mb-4" placeholder="Write your review..." />
+          <textarea id="feedback-review" value={review} onChange={(e) => setReview(e.target.value)} className="w-full border rounded px-4 py-2 mb-4" placeholder="Write your review..." />
 
-          <button onClick={handleSubmit} className="bg-green-500 text-white py-2 px-5 rounded">Submit Feedback</button>
+          <button id="feedback-submit" onClick={handleSubmit} className="bg-green-500 text-white py-2 px-5 rounded">Submit Feedback</button>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-md">

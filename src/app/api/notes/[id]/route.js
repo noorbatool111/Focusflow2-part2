@@ -5,7 +5,7 @@ import Note from '@/models/notes';
 export async function GET(req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
 
     if (!id || id.length !== 24) {
       return NextResponse.json({ error: 'Invalid note ID' }, { status: 400 });
@@ -23,7 +23,7 @@ export async function GET(req, { params }) {
 export async function PATCH(req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     const { content } = await req.json();
 
     if (!content || typeof content !== 'string') {
@@ -42,7 +42,7 @@ export async function PATCH(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
 
     const deleted = await Note.findByIdAndDelete(id);
     if (!deleted) return NextResponse.json({ error: 'Note not found' }, { status: 404 });

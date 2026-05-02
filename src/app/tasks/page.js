@@ -74,6 +74,7 @@ export default function TaskPage() {
         {/* Add Task */}
         <div className="flex gap-4 mb-6">
           <input
+            id="task-input"
             type="text"
             placeholder="Enter your task..."
             className="flex-1 px-4 py-3 rounded-lg border border-gray-500 bg-white text-black font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
@@ -82,6 +83,7 @@ export default function TaskPage() {
             onKeyDown={handleKeyDown}
           />
           <button
+            id="add-task-btn"
             onClick={addTask}
             className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg transition"
           >

@@ -60,7 +60,7 @@ export default function SignUpPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || 'Signup failed.');
+        alert(data.message || 'Signup failed.');
         return;
       }
 

@@ -53,23 +53,24 @@ export default function Dashboard() {
                 </Link>
               </li>
               <li>
-                <Link href="/tasks" className="text-gray-900 font-medium hover:text-pink-500">
+                <Link id="nav-tasks" href="/tasks" className="text-gray-900 font-medium hover:text-pink-500">
                   Tasks
                 </Link>
               </li>
               <li>
-                <Link href="/notes" className="text-gray-900 font-medium hover:text-pink-500">
+                <Link id="nav-notes" href="/notes" className="text-gray-900 font-medium hover:text-pink-500">
                   Notes
                 </Link>
               </li>
               <li>
-                <Link href="/feedback" className="text-gray-900 font-medium hover:text-pink-500">
+                <Link id="nav-feedback" href="/feedback" className="text-gray-900 font-medium hover:text-pink-500">
                   Feedback
                 </Link>
               </li>
               <li>
                 {isLoggedIn ? (
                   <button
+                    id="logout-btn"
                     onClick={handleLogout}
                     className="bg-pink-500 text-white px-4 py-2 rounded-full hover:bg-pink-700 transition"
                   >
@@ -89,7 +90,7 @@ export default function Dashboard() {
       {/* Main */}
       <main className="pt-32 max-w-7xl mx-auto px-6 pb-12">
         <h1 className="text-4xl text-center mb-6 text-blue-500">Welcome to Your Dashboard</h1>
-        <p className="text-center text-lg mb-10">Welcome, {fullName}!</p>
+        <p id="welcome-msg" className="text-center text-lg mb-10">Welcome, {fullName}!</p>
 
         <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
           <div className="bg-white p-6 rounded-xl shadow-lg hover:-translate-y-1 transition-transform">
