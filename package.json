@@ -23,7 +23,6 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.2.2",
     "chai": "^4.3.10",
-    "chromedriver": "^148.0.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "mocha": "^11.7.5",
