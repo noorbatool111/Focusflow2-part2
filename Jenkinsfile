@@ -61,3 +61,5 @@ pipeline {
                  subject: 'Jenkins FAILURE',
                  body: 'Pipeline failed. Check Jenkins console.'
         }
+    }
+}
