@@ -58,12 +58,12 @@ pipeline {
                 // Poll until the app responds (max ~60 s)
                 sh '''
                     echo "Waiting for application to be ready..."
-                    for i in $(seq 1 12); do
-                        if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+                    for i in $(seq 1 24); do
+                        if curl -sf http://localhost:4000 > /dev/null 2>&1; then
                             echo "✅  Application is up (attempt $i)"
                             exit 0
                         fi
-                        echo "⏳  Attempt $i/12 – sleeping 5 s..."
+                        echo "⏳  Attempt $i/24 – sleeping 5 s..."
                         sleep 5
                     done
                     echo "❌  Application did not start in time"
