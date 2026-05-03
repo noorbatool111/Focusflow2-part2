@@ -36,7 +36,7 @@ pipeline {
                 -w /app \
                 -e BASE_URL=http://focusflow-app:3000 \
                 markhobson/node-chrome:latest \
-                sh -c "npm install && node tests/selenium_tests.js"
+                sh -c "npm install && npm run test:selenium"
                 '''
             }
         }
