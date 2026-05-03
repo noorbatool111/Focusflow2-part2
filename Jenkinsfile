@@ -15,7 +15,8 @@ pipeline {
         // ── 1. Stop any previous run ────────────────────────────────────────
         stage('Stop and Clean') {
             steps {
-                sh 'docker-compose -f docker-compose-ci.yml down --remove-orphans || true'
+                sh 'docker rm -f focusflow2-ci || true'
+                sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml down --remove-orphans || true'
                 cleanWs()
             }
         }
@@ -53,7 +54,7 @@ pipeline {
         // ── 3. Build & start the app ────────────────────────────────────────
         stage('Start Application') {
             steps {
-                sh 'docker-compose -f docker-compose-ci.yml up -d --build'
+                sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml up -d --build'
                 // Poll until the app responds (max ~60 s)
                 sh '''
                     echo "Waiting for application to be ready..."
@@ -66,7 +67,7 @@ pipeline {
                         sleep 5
                     done
                     echo "❌  Application did not start in time"
-                    docker-compose -f docker-compose-ci.yml logs
+                    docker-compose -p focusflow-ci -f docker-compose-ci.yml logs
                     exit 1
                 '''
             }
@@ -77,7 +78,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                        --network focusflow2-pipeline_default \
+                        --network focusflow-ci_default \
                         -v "$PWD":/app \
                         -v /app/node_modules \
                         -w /app \
@@ -180,7 +181,7 @@ Jenkins CI — FocusFlow2
 
         // Always tear down so the server stays "down" between pushes
         always {
-            sh 'docker-compose -f docker-compose-ci.yml down --remove-orphans || true'
+            sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml down --remove-orphans || true'
         }
     }
 }

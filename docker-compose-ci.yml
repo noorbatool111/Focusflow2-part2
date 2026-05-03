@@ -3,7 +3,6 @@ version: '3.8'
 services:
   focusflow-app:
     image: node:20-alpine
-    container_name: focusflow2-ci
     working_dir: /app
     volumes:
       - .:/app 
