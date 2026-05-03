@@ -33,6 +33,7 @@ pipeline {
                 docker run --rm \
                 --network focusflow2-pipeline_default \
                 -v $PWD:/app \
+                -v /app/node_modules \
                 -w /app \
                 -e BASE_URL=http://focusflow-app:3000 \
                 markhobson/node-chrome:latest \
