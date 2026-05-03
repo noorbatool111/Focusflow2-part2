@@ -84,7 +84,7 @@ pipeline {
                         -w /app \
                         -e BASE_URL=http://focusflow-app:3000 \
                         markhobson/node-chrome:latest \
-                        sh -c "npm install && npm run test:selenium 2>&1 | tee /app/test-results.txt; exit \${PIPESTATUS[0]}"
+                        bash -c "set -o pipefail && npm install && npm run test:selenium 2>&1 | tee /app/test-results.txt"
                 '''
             }
         }
