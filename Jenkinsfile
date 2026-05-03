@@ -27,19 +27,18 @@ pipeline {
             }
         }
 
-       stage('Run Selenium Tests (Containerized)') {
-    steps {
-        sh '''
-        docker run --rm \
-        --network focusflow2-pipeline_default \
-        -v $PWD:/app \
-        -w /app \
-        -e BASE_URL=http://focusflow-app:3000 \
-        markhobson/node-chrome:latest \
-        sh -c "npm install && node tests/selenium_tests.js"
-        '''
-    }
-}
+        stage('Run Selenium Tests') {
+            steps {
+                sh '''
+                docker run --rm \
+                --network focusflow2-pipeline_default \
+                -v $PWD:/app \
+                -w /app \
+                -e BASE_URL=http://focusflow-app:3000 \
+                markhobson/node-chrome:latest \
+                sh -c "npm install && node tests/selenium_tests.js"
+                '''
+            }
         }
 
         stage('Verify Running') {
@@ -51,19 +50,15 @@ pipeline {
 
     post {
         success {
-            echo 'SUCCESS: All tests passed!'
-
             mail to: 'nhbatool111@gmail.com, qasimalik@gmail.com',
-                 subject: 'Jenkins SUCCESS: FocusFlow Tests Passed',
-                 body: 'Pipeline executed successfully. All Selenium test cases passed and app is running.'
+                 subject: 'Jenkins SUCCESS',
+                 body: 'Pipeline executed successfully. All tests passed.'
         }
 
         failure {
-            echo 'FAILURE: Pipeline failed.'
-
             mail to: 'nhbatool111@gmail.com, qasimalik@gmail.com',
-                 subject: 'Jenkins FAILURE: FocusFlow Pipeline',
-                 body: 'Pipeline failed. Check Jenkins console output.'
+                 subject: 'Jenkins FAILURE',
+                 body: 'Pipeline failed. Check Jenkins console.'
         }
     }
 }
