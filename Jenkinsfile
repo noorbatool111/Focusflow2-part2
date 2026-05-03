@@ -51,15 +51,13 @@ pipeline {
 
     post {
         success {
-            mail to: 'nhbatool111@gmail.com, qasimalik@gmail.com',
+            mail to: 'nhbatool111@gmail.com',
                  subject: 'Jenkins SUCCESS',
                  body: 'Pipeline executed successfully. All tests passed.'
         }
 
         failure {
-            mail to: 'nhbatool111@gmail.com, qasimalik@gmail.com',
+            mail to: 'nhbatool111@gmail.com',
                  subject: 'Jenkins FAILURE',
                  body: 'Pipeline failed. Check Jenkins console.'
         }
-    }
-}
