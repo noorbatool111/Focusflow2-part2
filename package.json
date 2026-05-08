@@ -10,6 +10,7 @@
     "test:selenium": "mocha tests/selenium_tests.js"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "autoprefixer": "^10.4.27",
     "bcryptjs": "^3.0.2",
     "mongodb": "^6.17.0",
@@ -17,16 +18,15 @@
     "next": "15.3.2",
     "postcss": "^8.5.9",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4.2.2",
     "chai": "^4.3.10",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "mocha": "^11.7.5",
-    "selenium-webdriver": "^4.43.0",
-    "tailwindcss": "^4.2.2"
+    "selenium-webdriver": "^4.43.0"
   }
 }
