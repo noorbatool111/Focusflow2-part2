@@ -35,7 +35,19 @@ pipeline {
                 sh 'docker-compose -p focusflow2-part2 -f docker-compose-ci.yml up -d --build'
                 sh '''
                 echo "Waiting for Next.js to finish compiling..."
-                docker run --rm --network focusflow2-part2_default markhobson/node-chrome:latest sh -c "while ! curl -s http://focusflow-app:3000/signup > /dev/null; do echo 'Still compiling Next.js...'; sleep 5; done; echo 'Next.js is fully compiled and ready!'"
+                docker run --rm --network focusflow2-part2_default markhobson/node-chrome:latest sh -c "
+                  ATTEMPTS=0; MAX=36;
+                  while ! curl -s http://focusflow-app:3000/signup > /dev/null; do
+                    ATTEMPTS=\$((ATTEMPTS+1));
+                    if [ \$ATTEMPTS -ge \$MAX ]; then
+                      echo 'ERROR: App did not start after 3 minutes. Aborting.';
+                      exit 1;
+                    fi;
+                    echo \"Still compiling Next.js... (\$ATTEMPTS/\$MAX)\";
+                    sleep 5;
+                  done;
+                  echo 'Next.js is fully compiled and ready!'
+                "
                 '''
             }
         }
