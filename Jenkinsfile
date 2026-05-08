@@ -15,6 +15,7 @@ pipeline {
         stage('Stop and Clean') {
             steps {
                 sh 'docker-compose -p focusflow2-part2 -f docker-compose-ci.yml down || true'
+                sh 'docker system prune -f'
                 cleanWs()
             }
         }
