@@ -6,8 +6,7 @@ pipeline {
     }
 
     environment {
-        PUSHER_EMAIL   = ''
-        INSTRUCTOR_EMAIL = 'qasimalik@gmail.com'
+        PUSHER_EMAIL = ''
     }
 
     stages {
@@ -34,19 +33,12 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    // Use git email if valid, otherwise fall back to your own email
-                    env.PUSHER_EMAIL = (authorEmail?.contains('@'))
-                        ? authorEmail
-                        : 'nhbatool111@gmail.com'
-
-                    echo "📧  Push detected from: ${env.PUSHER_EMAIL}"
-
-                    // Only notify the instructor when HE is the one who pushed
-                    if (env.PUSHER_EMAIL == env.INSTRUCTOR_EMAIL) {
-                        echo "ℹ️   Instructor push — email will go to ${env.INSTRUCTOR_EMAIL}"
-                    } else {
-                        echo "ℹ️   Student push — email will go to ${env.PUSHER_EMAIL} only"
+                    if (!authorEmail?.contains('@')) {
+                        error "❌  Could not determine a valid email from the latest commit. Got: '${authorEmail}'"
                     }
+
+                    env.PUSHER_EMAIL = authorEmail
+                    echo "📧  Push detected from: ${env.PUSHER_EMAIL} — notifications will go to this address only."
                 }
             }
         }
@@ -109,9 +101,7 @@ pipeline {
                     report = '(test output not available)'
                 }
 
-                // Send ONLY to the pusher.
-                // If the pusher IS the instructor, that already covers him —
-                // no extra CC needed for anyone else's pushes.
+                // Send ONLY to the person who triggered the pipeline
                 def mailTo = env.PUSHER_EMAIL
 
                 mail(
@@ -148,8 +138,7 @@ Jenkins CI — FocusFlow2
                     report = '(test output not available – pipeline may have failed before tests ran)'
                 }
 
-                // Same rule: email goes only to whoever pushed.
-                // If that person IS the instructor, he gets it automatically.
+                // Send ONLY to the person who triggered the pipeline
                 def mailTo = env.PUSHER_EMAIL
 
                 mail(
