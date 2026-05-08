@@ -7,13 +7,15 @@ services:
     volumes:
       - .:/app 
       - app-node-cache:/app/node_modules
+      - next-build-cache:/app/.next
     ports:
       - "4000:3000" 
     environment:
       - MONGODB_URI=mongodb://noor:noor123@cluster0-shard-00-00.ylkll.mongodb.net:27017,cluster0-shard-00-01.ylkll.mongodb.net:27017,cluster0-shard-00-02.ylkll.mongodb.net:27017/?ssl=true&replicaSet=atlas-le2i56-shard-0&authSource=admin&appName=Cluster0
-      - NODE_ENV=development 
+      - NODE_ENV=production
     command: >
-      sh -c "npm install --prefer-offline && npm run dev -- -p 3000"
+      sh -c "npm install --prefer-offline && npm run build && npm run start -- -p 3000"
 
 volumes:
   app-node-cache:
+  next-build-cache:
