@@ -72,11 +72,11 @@ pipeline {
                     docker run --rm \
                         --network focusflow-ci_default \
                         -v "$PWD":/app \
-                        -v /app/node_modules \
+                        -v focusflow-ci-node-cache:/app/node_modules \
                         -w /app \
                         -e BASE_URL=http://focusflow-app:3000 \
                         markhobson/node-chrome:latest \
-                        bash -c "set -o pipefail && npm install && npm run test:selenium 2>&1 | tee /app/test-results.txt"
+                        bash -c "set -o pipefail && npm install --prefer-offline && npm run test:selenium 2>&1 | tee /app/test-results.txt"
                 '''
             }
         }

@@ -5,7 +5,7 @@ const { expect } = require('chai');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 describe('FocusFlow Automated Test Suite', function () {
-    this.timeout(60000);
+    this.timeout(30000);
     let driver;
     const timestamp = Date.now();
     const testUser = {
@@ -34,7 +34,7 @@ describe('FocusFlow Automated Test Suite', function () {
         }
     });
 
-    async function handleAlertIfPresent(timeout = 2000) {
+    async function handleAlertIfPresent(timeout = 1000) {
         try {
             await driver.wait(until.alertIsPresent(), timeout);
             let alert = await driver.switchTo().alert();
@@ -65,7 +65,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.css('button[type="submit"]')).click();
         
         // Wait for and handle the success alert
-        await driver.wait(until.alertIsPresent(), 5000);
+        await driver.wait(until.alertIsPresent(), 3000);
         let alert = await driver.switchTo().alert();
         await alert.accept();
 
@@ -83,7 +83,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('confirm-password')).sendKeys(testUser.password);
         await driver.findElement(By.css('button[type="submit"]')).click();
         
-        const alertText = await handleAlertIfPresent(5000);
+        const alertText = await handleAlertIfPresent(3000);
         // If alert was present, it likely contains "exists"
         if (alertText) expect(alertText.toLowerCase()).to.contain('exists');
     });
@@ -95,7 +95,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('confirm-password')).sendKeys('wrongpass');
         await driver.findElement(By.css('button[type="submit"]')).click();
         
-        const alertText = await handleAlertIfPresent(5000);
+        const alertText = await handleAlertIfPresent(3000);
         if (alertText) expect(alertText.toLowerCase()).to.contain('match');
     });
 
@@ -106,7 +106,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('password')).sendKeys(testUser.password);
         await driver.findElement(By.css('button[type="submit"]')).click();
         
-        await handleAlertIfPresent(5000);
+        await handleAlertIfPresent(3000);
         await driver.wait(until.urlContains('/dashboard'), 5000);
         await driver.wait(until.elementLocated(By.id('welcome-msg')), 5000);
         const welcomeMsg = await driver.findElement(By.id('welcome-msg')).getText();
@@ -120,7 +120,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('password')).sendKeys('WrongPass123');
         await driver.findElement(By.css('button[type="submit"]')).click();
         
-        const alertText = await handleAlertIfPresent(5000);
+        const alertText = await handleAlertIfPresent(3000);
         if (alertText) expect(alertText.toLowerCase()).to.contain('invalid');
     });
 
@@ -131,7 +131,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('password')).sendKeys('anypassword');
         await driver.findElement(By.css('button[type="submit"]')).click();
         
-        const alertText = await handleAlertIfPresent(5000);
+        const alertText = await handleAlertIfPresent(3000);
         if (alertText) expect(alertText.toLowerCase()).to.contain('not found');
         expect(await driver.getCurrentUrl()).to.contain('/login');
     });
@@ -151,7 +151,7 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('email')).sendKeys(testUser.email);
         await driver.findElement(By.id('password')).sendKeys(testUser.password);
         await driver.findElement(By.css('button[type="submit"]')).click();
-        await handleAlertIfPresent(5000);
+        await handleAlertIfPresent(3000);
         await driver.wait(until.urlContains('/dashboard'), 5000);
 
         await driver.wait(until.elementLocated(By.id('nav-tasks')), 5000);
@@ -228,7 +228,10 @@ describe('FocusFlow Automated Test Suite', function () {
         const deleteBtns = await driver.findElements(By.xpath('//button[text()="Delete"]'));
         if (deleteBtns.length > 0) {
             await deleteBtns[0].click();
-            await driver.sleep(2000);
+            await driver.wait(async () => {
+                const currentTasks = await driver.findElements(By.css('.bg-white.px-6.py-4'));
+                return currentTasks.length < initialTasks.length;
+            }, 5000);
             const finalTasks = await driver.findElements(By.css('.bg-white.px-6.py-4'));
             expect(finalTasks.length).to.be.lessThan(initialTasks.length);
         }
