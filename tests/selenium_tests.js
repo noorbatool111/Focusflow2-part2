@@ -38,7 +38,7 @@ describe('FocusFlow Automated Test Suite', function () {
         }
     });
 
-    async function handleAlertIfPresent(timeout = 2000) {
+    async function handleAlertIfPresent(timeout = 1000) {
         try {
             await driver.wait(until.alertIsPresent(), timeout);
             let alert = await driver.switchTo().alert();
@@ -46,7 +46,6 @@ describe('FocusFlow Automated Test Suite', function () {
             await alert.accept();
             return text;
         } catch (e) {
-            // No alert present, that's fine for some flows
             return null;
         }
     }
@@ -55,6 +54,19 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.get(`${BASE_URL}/login`);
         await driver.executeScript('window.localStorage.clear();');
         await driver.navigate().refresh();
+    }
+
+    async function loginIfRequired() {
+        const currentUrl = await driver.getCurrentUrl();
+        if (!currentUrl.includes('/dashboard') && !currentUrl.includes('/notes') && !currentUrl.includes('/tasks') && !currentUrl.includes('/feedback')) {
+            await driver.get(`${BASE_URL}/login`);
+            await driver.wait(until.elementLocated(By.id('email')), 10000);
+            await driver.findElement(By.id('email')).sendKeys(testUser.email);
+            await driver.findElement(By.id('password')).sendKeys(testUser.password);
+            await driver.findElement(By.css('button[type="submit"]')).click();
+            await handleAlertIfPresent(2000);
+            await driver.wait(until.urlContains('/dashboard'), 15000);
+        }
     }
 
     // 1. Signup Success
@@ -110,7 +122,9 @@ describe('FocusFlow Automated Test Suite', function () {
         await driver.findElement(By.id('password')).sendKeys(testUser.password);
         await driver.findElement(By.css('button[type="submit"]')).click();
 
-        await handleAlertIfPresent(5000);
+        // Handle possible alert but don't fail if it's not there
+        await handleAlertIfPresent(2000);
+        
         await driver.wait(until.urlContains('/dashboard'), 30000);
         await driver.wait(until.elementLocated(By.id('welcome-msg')), 30000);
         const welcomeMsg = await driver.findElement(By.id('welcome-msg')).getText();
@@ -150,14 +164,8 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 8. Dashboard - Navigation Links Presence
     it('8. Should verify presence of core navigation links on Dashboard', async function () {
-        // Log in first to reach dashboard
-        await ensureLoggedOut();
-        await driver.findElement(By.id('email')).sendKeys(testUser.email);
-        await driver.findElement(By.id('password')).sendKeys(testUser.password);
-        await driver.findElement(By.css('button[type="submit"]')).click();
-        await handleAlertIfPresent(5000);
-        await driver.wait(until.urlContains('/dashboard'), 30000);
-
+        await loginIfRequired();
+        await driver.get(`${BASE_URL}/dashboard`);
         await driver.wait(until.elementLocated(By.id('nav-tasks')), 30000);
         expect(await driver.findElement(By.id('nav-tasks')).isDisplayed()).to.be.true;
         expect(await driver.findElement(By.id('nav-notes')).isDisplayed()).to.be.true;
@@ -166,6 +174,7 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 9. Notes - Add Note
     it('9. Should successfully add a new note', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/notes`);
         await driver.wait(until.elementLocated(By.id('note-textarea')), 30000);
         const noteText = 'Selenium Test Note ' + timestamp;
@@ -177,32 +186,51 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 10. Notes - Edit Note
     it('10. Should successfully edit an existing note', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/notes`);
-        await driver.wait(until.elementLocated(By.xpath('//button[text()="Edit"]')), 30000);
-        const editBtns = await driver.findElements(By.xpath('//button[text()="Edit"]'));
-        if (editBtns.length > 0) {
-            await editBtns[0].click();
-            await driver.wait(until.elementLocated(By.css('main textarea.w-full.border')), 30000);
-            const textarea = await driver.findElement(By.css('main textarea.w-full.border'));
-            await textarea.clear();
-            const updatedText = 'Updated by Selenium ' + timestamp;
-            await textarea.sendKeys(updatedText);
-            await driver.findElement(By.xpath('//button[text()="Save"]')).click();
-            await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), "${updatedText}")]`)), 30000);
-        }
+        await driver.wait(until.elementLocated(By.id('note-textarea')), 30000);
+        
+        // Add a note first to ensure we have something to edit
+        const noteText = 'Edit Test Note ' + timestamp;
+        await driver.findElement(By.id('note-textarea')).sendKeys(noteText);
+        await driver.findElement(By.id('add-note-btn')).click();
+        await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), "${noteText}")]`)), 30000);
+
+        // Now find the edit button for a note
+        const editBtnXpath = '//button[contains(translate(text(), "EDIT", "edit"), "edit")]';
+        await driver.wait(until.elementLocated(By.xpath(editBtnXpath)), 30000);
+        const editBtns = await driver.findElements(By.xpath(editBtnXpath));
+        
+        await editBtns[0].click();
+        await driver.wait(until.elementLocated(By.css('main textarea.w-full.border')), 30000);
+        const textarea = await driver.findElement(By.css('main textarea.w-full.border'));
+        await textarea.clear();
+        const updatedText = 'Updated by Selenium ' + timestamp;
+        await textarea.sendKeys(updatedText);
+        await driver.findElement(By.xpath('//button[contains(text(), "Save")]')).click();
+        await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), "${updatedText}")]`)), 30000);
     });
 
     // 11. Notes - Delete Note
     it('11. Should successfully delete a note', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/notes`);
-        await driver.wait(until.elementLocated(By.css('.bg-white.p-4.rounded-xl')), 30000);
+        await driver.wait(until.elementLocated(By.id('note-textarea')), 30000);
+
+        // Add a note first to ensure we have something to delete
+        const noteText = 'Delete Test Note ' + timestamp;
+        await driver.findElement(By.id('note-textarea')).sendKeys(noteText);
+        await driver.findElement(By.id('add-note-btn')).click();
+        await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), "${noteText}")]`)), 30000);
+
         const initialNotes = await driver.findElements(By.css('.bg-white.p-4.rounded-xl'));
         const deleteBtns = await driver.findElements(By.xpath('//button[text()="X"]'));
+        
         if (deleteBtns.length > 0) {
-            // Use JS click to avoid issues with element being obscured
+            // Click the delete button (X) of the first note
             await driver.executeScript("arguments[0].click();", deleteBtns[0]);
 
-            // Wait for the note to be removed from the DOM
+            // Wait for the count of notes to decrease
             await driver.wait(async () => {
                 const currentNotes = await driver.findElements(By.css('.bg-white.p-4.rounded-xl'));
                 return currentNotes.length < initialNotes.length;
@@ -215,6 +243,7 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 12. Tasks - Add Task
     it('12. Should successfully add a new task', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/tasks`);
         await driver.wait(until.elementLocated(By.id('task-input')), 30000);
         const taskText = 'Selenium Task ' + timestamp;
@@ -227,6 +256,7 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 13. Tasks - Delete Task
     it('13. Should successfully delete a task', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/tasks`);
         await driver.wait(until.elementLocated(By.css('.bg-white.px-6.py-4')), 30000);
         const initialTasks = await driver.findElements(By.css('.bg-white.px-6.py-4'));
@@ -241,6 +271,7 @@ describe('FocusFlow Automated Test Suite', function () {
 
     // 14. Feedback - Submit Feedback
     it('14. Should successfully submit feedback', async function () {
+        await loginIfRequired();
         await driver.get(`${BASE_URL}/feedback`);
         await driver.wait(until.elementLocated(By.id('feedback-name')), 30000);
         await driver.findElement(By.id('feedback-name')).sendKeys(testUser.name);

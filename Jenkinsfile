@@ -5,6 +5,11 @@ pipeline {
         githubPush()
     }
 
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
     stages {
 
         stage('Stop and Clean') {
@@ -40,10 +45,11 @@ pipeline {
                 docker run --rm \
                 --network focusflow2-part2_default \
                 -v $PWD:/app \
+                -v focusflow-ci-node-cache:/app/node_modules \
                 -w /app \
                 -e BASE_URL=http://focusflow-app:3000 \
                 markhobson/node-chrome:latest \
-                npx mocha tests/selenium_tests.js
+                bash -c "npm install --prefer-offline && npx mocha tests/selenium_tests.js"
                 '''
             }
         }
