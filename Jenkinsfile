@@ -5,172 +5,71 @@ pipeline {
         githubPush()
     }
 
-    environment {
-        PUSHER_EMAIL = ''
-    }
-
     stages {
 
-        // ── 1. Stop any previous run ────────────────────────────────────────
         stage('Stop and Clean') {
             steps {
-                sh 'docker rm -f focusflow2-ci || true'
-                sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml down --remove-orphans || true'
+                sh 'docker-compose -p focusflow2-part2 -f docker-compose-ci.yml down || true'
                 cleanWs()
             }
         }
 
-        // ── 2. Clone the repository ─────────────────────────────────────────
         stage('Clone Code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/noorbatool111/Focusflow2-part2.git'
-
-                // Resolve the pusher's email from git history
+                git branch: 'main', url: 'https://github.com/noorbatool111/Focusflow2-part2.git'
                 script {
-                    def authorEmail = sh(
-                        script: "git log -1 --format='%ae'",
-                        returnStdout: true
-                    ).trim()
-
-                    if (!authorEmail?.contains('@')) {
-                        error "❌  Could not determine a valid email from the latest commit. Got: '${authorEmail}'"
-                    }
-
-                    env.PUSHER_EMAIL = authorEmail
-                    echo "📧  Push detected from: ${env.PUSHER_EMAIL} — notifications will go to this address only."
+                    // Dynamically capture the email of the person who pushed/committed
+                    env.COMMITTER_EMAIL = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
                 }
             }
         }
 
-        // ── 3. Build & start the app ────────────────────────────────────────
         stage('Start Application') {
             steps {
-                sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml up -d --build'
-                // Poll until the app responds (max ~60 s)
+                sh 'docker-compose -p focusflow2-part2 -f docker-compose-ci.yml up -d --build'
                 sh '''
-                    echo "Waiting for application to be ready..."
-                    for i in $(seq 1 24); do
-                        if curl -sf http://localhost:4000 > /dev/null 2>&1; then
-                            echo "✅  Application is up (attempt $i)"
-                            exit 0
-                        fi
-                        echo "⏳  Attempt $i/24 – sleeping 5 s..."
-                        sleep 5
-                    done
-                    echo "❌  Application did not start in time"
-                    docker-compose -p focusflow-ci -f docker-compose-ci.yml logs
-                    exit 1
+                echo "Waiting for Next.js to finish compiling..."
+                docker run --rm --network focusflow2-part2_default markhobson/node-chrome:latest sh -c "while ! curl -s http://focusflow-app:3000/signup > /dev/null; do echo 'Still compiling Next.js...'; sleep 5; done; echo 'Next.js is fully compiled and ready!'"
                 '''
             }
         }
 
-        // ── 4. Run the Selenium test suite ──────────────────────────────────
-        stage('Run Selenium Tests') {
+        stage('Run Selenium Tests (Containerized)') {
             steps {
                 sh '''
-                    docker run --rm \
-                        --network focusflow-ci_default \
-                        -v "$PWD":/app \
-                        -v focusflow-ci-node-cache:/app/node_modules \
-                        -w /app \
-                        -e BASE_URL=http://focusflow-app:3000 \
-                        markhobson/node-chrome:latest \
-                        bash -c "set -o pipefail && npm install --prefer-offline && npm run test:selenium 2>&1 | tee /app/test-results.txt"
+                docker run --rm \
+                --network focusflow2-part2_default \
+                -v $PWD:/app \
+                -w /app \
+                -e BASE_URL=http://focusflow-app:3000 \
+                markhobson/node-chrome:latest \
+                npx mocha tests/selenium_tests.js
                 '''
             }
         }
 
-        // ── 5. Confirm containers still up ─────────────────────────────────
         stage('Verify Running') {
             steps {
-                sh 'docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+                sh 'docker ps'
             }
         }
     }
 
-    // ── Post-build notifications ────────────────────────────────────────────
     post {
-
         success {
-            script {
-                def report = ''
-                try {
-                    report = readFile('test-results.txt')
-                } catch (e) {
-                    report = '(test output not available)'
-                }
+            echo 'SUCCESS: All tests passed!'
 
-                // Send ONLY to the person who triggered the pipeline
-                def mailTo = env.PUSHER_EMAIL
-
-                mail(
-                    to:      mailTo,
-                    subject: "✅ [FocusFlow] Jenkins Pipeline PASSED — ${env.BUILD_TAG}",
-                    body: """\
-Hello,
-
-The Jenkins CI pipeline for FocusFlow2 completed SUCCESSFULLY.
-
-Triggered by : ${env.PUSHER_EMAIL}
-Branch       : ${env.GIT_BRANCH}
-Commit       : ${env.GIT_COMMIT?.take(8)}
-Build #      : ${env.BUILD_NUMBER}
-Build URL    : ${env.BUILD_URL}
-
-─── Test Results ─────────────────────────────────
-${report}
-──────────────────────────────────────────────────
-
-Regards,
-Jenkins CI — FocusFlow2
-"""
-                )
-            }
+            mail to: "${env.COMMITTER_EMAIL}",
+                 subject: "Jenkins SUCCESS: FocusFlow Tests Passed",
+                 body: "Pipeline executed successfully for your push. All Selenium test cases passed and the app is running."
         }
 
         failure {
-            script {
-                def report = ''
-                try {
-                    report = readFile('test-results.txt')
-                } catch (e) {
-                    report = '(test output not available – pipeline may have failed before tests ran)'
-                }
+            echo 'FAILURE: Pipeline failed.'
 
-                // Send ONLY to the person who triggered the pipeline
-                def mailTo = env.PUSHER_EMAIL
-
-                mail(
-                    to:      mailTo,
-                    subject: "❌ [FocusFlow] Jenkins Pipeline FAILED — ${env.BUILD_TAG}",
-                    body: """\
-Hello,
-
-The Jenkins CI pipeline for FocusFlow2 has FAILED.
-
-Triggered by : ${env.PUSHER_EMAIL}
-Branch       : ${env.GIT_BRANCH}
-Commit       : ${env.GIT_COMMIT?.take(8)}
-Build #      : ${env.BUILD_NUMBER}
-Build URL    : ${env.BUILD_URL}
-
-Please check the console output at the URL above for details.
-
-─── Test Results / Last Output ───────────────────
-${report}
-──────────────────────────────────────────────────
-
-Regards,
-Jenkins CI — FocusFlow2
-"""
-                )
-            }
-        }
-
-        // Always tear down so the server stays "down" between pushes
-        always {
-            sh 'docker-compose -p focusflow-ci -f docker-compose-ci.yml down --remove-orphans || true'
+            mail to: "${env.COMMITTER_EMAIL}",
+                 subject: "Jenkins FAILURE: FocusFlow Pipeline",
+                 body: "Pipeline failed for your recent push. Check Jenkins console output for details."
         }
     }
 }
