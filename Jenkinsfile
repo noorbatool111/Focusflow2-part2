@@ -18,7 +18,7 @@ pipeline {
             steps {
                 git branch: 'main', url: 'https://github.com/noorbatool111/Focusflow2-part2.git'
                 script {
-                    // Dynamically capture the email of the person who pushed/committed
+                    // Dynamically capture the email of the person who pushed
                     env.COMMITTER_EMAIL = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
                 }
             }
